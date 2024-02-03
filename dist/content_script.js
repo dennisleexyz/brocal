@@ -1,3 +1,8 @@
+/******/ (() => { // webpackBootstrap
+var __webpack_exports__ = {};
+/*!**********************************************!*\
+  !*** ./src/content_script/content_script.js ***!
+  \**********************************************/
 let courses = []
 let finalTimeFinder = getFinalsTimes()
 /* {
@@ -137,3 +142,6 @@ function ics (courses) {
 
   return ics
 }
+/******/ })()
+;
+//# sourceMappingURL=content_script.js.map
