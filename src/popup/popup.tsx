@@ -37,7 +37,7 @@ const App = () => (
 
       <hr className="my-5 border border-slate-100" />
 
-      <div className="flex space-x-2"> {/*flex container*/}
+      <div className="flex space-x-2">
       </div>
     </div>
   </div>
