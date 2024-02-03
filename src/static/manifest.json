@@ -12,7 +12,7 @@
     "content_scripts": [
         {
           "matches": ["*://my.cpp.edu/uPortal/f/home_student/normal/render.uP"],
-          "js": ["content_script/content_script.js"]
+          "js": ["content_script.js"]
         }
       ],
     "icons": {
