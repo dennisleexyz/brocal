@@ -34,7 +34,7 @@ setTimeout(function() {
             console.log(prevCourseIndex)
             //location = course.querySelector(".info").querySelector("a")
             //url = course.querySelector(".info").querySelector("a")
-            let time = course.querySelector(".time").querySelector("p").innerText.split("\n")
+            let time = course.querySelector(".time").querySelector("p").innerText.split(/\n|\s{2,}/).map(s => s.trim())
             if(prevCourseIndex != -1) {
                 courses[prevCourseIndex].meetingPattern.push(currentDay)
             } else {
