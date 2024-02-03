@@ -1,6 +1,5 @@
-console.log("Functioning")
-
 let courses = []
+let finalTimeFinder = getFinalsTimes()
 /* {
             "name": "PLS 2030: Intro to Int'l Relations",
             "startDt": "2024-01-20",
@@ -12,6 +11,24 @@ let courses = []
             "meetingPattern": "Monday,Wednesday",
 } */
 
+setTimeout(async () => {
+    let schedule = parse()
+    //iterates through schedule and adds final exam date
+    for (let i = 0; i < schedule.length; i++) {
+        //preprocessing dates for final exam map
+        let timeStart = schedule[i].meetingTimeStart.replace(/^0+/, "").toUpperCase();
+        let timeEnd = schedule[i].meetingTimeEnd.replace(/^0+/, "").toUpperCase();
+
+        let timeKey = timeStart + " - " + timeEnd
+        let dateKey = schedule[i].meetingPattern.map(date => date.substring(0,2)).join("-")
+
+        schedule[i].finalExamDate = finalTimeFinder.get(dateKey).get(timeKey)
+    }
+    console.log(schedule)
+    console.log(ics(parse()))
+
+}, 5000);
+
 function findDuplicate(courses, courseName) {
     for(let i = 0; i < courses.length; i++) {
         if(courses[i].name == courseName) {
@@ -20,17 +37,18 @@ function findDuplicate(courses, courseName) {
     }
     return -1
 }
-setTimeout(function() {
+
+function parse() {
     let dailySchedule = document.querySelector("class-schedule").shadowRoot.querySelectorAll(".daily-schedule") 
     dailySchedule.forEach(day => {
         currentDay = day.querySelector("h4").innerText
         day.querySelectorAll(".course").forEach(course => {
-            let courseName = course.querySelector(".info").querySelector("strong").innerText
+            let courseName = course.querySelector(".info").querySelector("strong").innerText.trim()
             let prevCourseIndex = findDuplicate(courses, courseName)
+            //Currently query selecting clicks link for a tag
             //location = course.querySelector(".info").querySelector("a")
             //url = course.querySelector(".info").querySelector("a")
-            let time = course.querySelector(".time").querySelector("p").innerText.split("\n")
-            console.log(course.querySelector(".time").querySelector("p").innerText)
+            let time = course.querySelector(".time").querySelector("p").innerText.split(/\n|\s{2,}/).map(s => s.trim())
             if(prevCourseIndex != -1) {
                 courses[prevCourseIndex].meetingPattern.push(currentDay)
             } else {
@@ -42,16 +60,17 @@ setTimeout(function() {
                     meetingTimeEnd: time[1],
                     location: "location",
                     url_address: "url",
-                    meetingPattern: [currentDay]
+                    meetingPattern: [currentDay],
+                    finalExamDate: null
                 }
                 courses.push(newEntry)
             }
         })
     })
-    console.log(courses)
-  }, 5000);
+    return courses
+}
 
-  function getFinalsTimes() {
+function getFinalsTimes() {
     let finalTimeFinder = new Map()
     let document
     var myHeaders = new Headers();
@@ -71,18 +90,17 @@ setTimeout(function() {
         let sections = htmlElement.querySelectorAll(".mt-4")
         //Returns card from all sections
         sections.forEach(section => {section.querySelectorAll(".card").forEach(card => {
-                var regex = /[A-Z][a-z]{2}/g;
+                var regex = /[A-Z][a-z]{1}/g;
                 let title = card.querySelector("button").innerText.trim()
                 //Retrieves first three letters from the day and sets it as the key, if there are more than one day it joins it
                 dayKey = title.match(regex).join("-")
                 //Creates map for each day
                 finalTimeFinder.set(dayKey, new Map())
                 card.querySelectorAll("tr:not(:first-child)").forEach(row => {
-                    let timeKey = row.querySelectorAll("td > p")[0].innerHTML.trim()
-                    let finalExamDateTime = row.querySelectorAll("td > p")[1].innerHTML.trim() + " " + row.querySelectorAll("td > p")[2].innerHTML.trim()
+                    let timeKey = row.querySelectorAll("td > p")[0].innerHTML.trim().padStart(5, "0")
+                    let finalExamDateTime = row.querySelectorAll("td > p")[1].innerHTML.replace(/\([^()]*\)/g, '').trim() + " " + row.querySelectorAll("td > p")[2].innerHTML.trim()
                     finalTimeFinder.get(dayKey).set(timeKey, finalExamDateTime)
                 })
-                console.log()
             })
         })
         console.log(sections);
@@ -90,7 +108,32 @@ setTimeout(function() {
     })
     .catch(error => console.log('error', error));
 
-    
-  }
+    return finalTimeFinder
+}
 
-  getFinalsTimes()
+function ics (courses) {
+  ics = 'BEGIN:VCALENDAR\n'
+
+  courses.forEach(e => {
+    e.startDt = e.startDt.replaceAll('-', '')
+    e.endDt = e.endDt.replaceAll('-', '')
+    e.meetingTimeStart = e.meetingTimeStart.replaceAll(':', '').split(" ")[0]
+    e.meetingTimeEnd = e.meetingTimeEnd.replaceAll(':', '').split(" ")[0]
+    e.meetingPattern = e.meetingPattern
+      .map(e => e.substring(0, 2))
+      .join()
+      .toUpperCase()
+
+    ics += 'BEGIN:VEVENT\n'
+    ics += `SUMMARY:${e.name}\n`
+    ics += `RRULE:FREQ=WEEKLY;BYDAY=${e.meetingPattern};UNTIL=${e.endDt}\n`
+    ics += `DTSTART;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeStart}00\n`
+    ics += `DTEND;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeEnd}00\n`
+    ics += `DESCRIPTION:${e.name}\n`
+    ics += 'END:VEVENT\n'
+  })
+
+  ics += 'END:VCALENDAR\n'
+
+  return ics
+}
