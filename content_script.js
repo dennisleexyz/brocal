@@ -11,30 +11,26 @@ let courses = []
             "url_address": "https%3A%2F%2Fwww.cpp.edu%2Fmaps%2F%3Fid%3D1130%23%21m%2F276183",
             "meetingPattern": "Monday,Wednesday",
 } */
+
+function findDuplicate(courses, courseName) {
+    for(let i = 0; i < courses.length; i++) {
+        if(courses[i].name == courseName) {
+            return i
+        }
+    }
+    return -1
+}
 setTimeout(function() {
     let dailySchedule = document.querySelector("class-schedule").shadowRoot.querySelectorAll(".daily-schedule") 
     dailySchedule.forEach(day => {
         currentDay = day.querySelector("h4").innerText
         day.querySelectorAll(".course").forEach(course => {
             let courseName = course.querySelector(".info").querySelector("strong").innerText
-            console.log(courseName)
-            courses.forEach(program => {
-                if(program.name == courseName) {
-                    console.log("DUPLICATE")
-                }
-            })
-            let prevCourseIndex = -1
-
-            for(let i = 0; i < courses.length; i++) {
-                if(courses[i].name == courseName) {
-                    prevCourseIndex = i
-                }
-            }
-            
-            console.log(prevCourseIndex)
+            let prevCourseIndex = findDuplicate(courses, courseName)
             //location = course.querySelector(".info").querySelector("a")
             //url = course.querySelector(".info").querySelector("a")
             let time = course.querySelector(".time").querySelector("p").innerText.split("\n")
+            console.log(course.querySelector(".time").querySelector("p").innerText)
             if(prevCourseIndex != -1) {
                 courses[prevCourseIndex].meetingPattern.push(currentDay)
             } else {
@@ -54,3 +50,47 @@ setTimeout(function() {
     })
     console.log(courses)
   }, 5000);
+
+  function getFinalsTimes() {
+    let finalTimeFinder = new Map()
+    let document
+    var myHeaders = new Headers();
+
+    var requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow'
+    };
+    
+    meetPerWeek = 1
+    fetch("https://www.cpp.edu/studentsuccess/academic-calendar/finals-week.shtml", requestOptions)
+    .then(response => response.text())
+    .then(result => {
+        document = new DOMParser().parseFromString(result, 'text/html')
+        let htmlElement = document.documentElement;
+        let sections = htmlElement.querySelectorAll(".mt-4")
+        //Returns card from all sections
+        sections.forEach(section => {section.querySelectorAll(".card").forEach(card => {
+                var regex = /[A-Z][a-z]{2}/g;
+                let title = card.querySelector("button").innerText.trim()
+                //Retrieves first three letters from the day and sets it as the key, if there are more than one day it joins it
+                dayKey = title.match(regex).join("-")
+                //Creates map for each day
+                finalTimeFinder.set(dayKey, new Map())
+                card.querySelectorAll("tr:not(:first-child)").forEach(row => {
+                    let timeKey = row.querySelectorAll("td > p")[0].innerHTML.trim()
+                    let finalExamDateTime = row.querySelectorAll("td > p")[1].innerHTML.trim() + " " + row.querySelectorAll("td > p")[2].innerHTML.trim()
+                    finalTimeFinder.get(dayKey).set(timeKey, finalExamDateTime)
+                })
+                console.log()
+            })
+        })
+        console.log(sections);
+        console.log(finalTimeFinder)
+    })
+    .catch(error => console.log('error', error));
+
+    
+  }
+
+  getFinalsTimes()
