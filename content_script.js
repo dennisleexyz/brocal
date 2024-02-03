@@ -1,5 +1,3 @@
-console.log("Functioning")
-
 let courses = []
 /* {
             "name": "PLS 2030: Intro to Int'l Relations",
@@ -19,12 +17,6 @@ function parse() {
         currentDay = day.querySelector("h4").innerText
         day.querySelectorAll(".course").forEach(course => {
             let courseName = course.querySelector(".info").querySelector("strong").innerText.trim()
-            console.log(courseName)
-            courses.forEach(program => {
-                if(program.name == courseName) {
-                    console.log("DUPLICATE")
-                }
-            })
             let prevCourseIndex = -1
 
             for(let i = 0; i < courses.length; i++) {
@@ -33,7 +25,6 @@ function parse() {
                 }
             }
             
-            console.log(prevCourseIndex)
             //location = course.querySelector(".info").querySelector("a")
             //url = course.querySelector(".info").querySelector("a")
             let time = course.querySelector(".time").querySelector("p").innerText.split(/\n|\s{2,}/).map(s => s.trim())
