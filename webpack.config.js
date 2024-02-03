@@ -1,14 +1,15 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
-const HtmlPlugin= require('html-webpack-plugin')
-const tailwindcss= require('tailwindcss')
-const autoprefixer=require('autoprefixer');
+const HtmlPlugin = require('html-webpack-plugin');
+const tailwindcss = require('tailwindcss');
+const autoprefixer = require('autoprefixer');
 
 module.exports = {
     mode: "development",
     devtool: 'cheap-module-source-map',
     entry: {
         popup: path.resolve('./src/popup/popup.tsx'),
+        content_script: path.resolve('./src/content_script/content_script.js'),  // Adjust this line
     },
     module: {
         rules: [
@@ -18,12 +19,12 @@ module.exports = {
                 exclude: /node_modules/
             },
             {
-                use:['style-loader', 'css-loader', {
+                use: ['style-loader', 'css-loader', {
                     loader: 'postcss-loader',
                     options: {
                         postcssOptions: {
                             ident: 'postcss',
-                            plugins: [tailwindcss,autoprefixer],
+                            plugins: [tailwindcss, autoprefixer],
                         }
                     }
                 }],
