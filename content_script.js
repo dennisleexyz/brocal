@@ -11,12 +11,14 @@ let courses = []
             "url_address": "https%3A%2F%2Fwww.cpp.edu%2Fmaps%2F%3Fid%3D1130%23%21m%2F276183",
             "meetingPattern": "Monday,Wednesday",
 } */
-setTimeout(function() {
+setTimeout(console.log(ics(parse())), 5000);
+
+function parse() {
     let dailySchedule = document.querySelector("class-schedule").shadowRoot.querySelectorAll(".daily-schedule") 
     dailySchedule.forEach(day => {
         currentDay = day.querySelector("h4").innerText
         day.querySelectorAll(".course").forEach(course => {
-            let courseName = course.querySelector(".info").querySelector("strong").innerText
+            let courseName = course.querySelector(".info").querySelector("strong").innerText.trim()
             console.log(courseName)
             courses.forEach(program => {
                 if(program.name == courseName) {
@@ -52,5 +54,32 @@ setTimeout(function() {
             }
         })
     })
-    console.log(courses)
-  }, 5000);
+    return courses
+}
+
+function ics (courses) {
+  ics = 'BEGIN:VCALENDAR\n'
+
+  courses.forEach(e => {
+    e.startDt = e.startDt.replaceAll('-', '')
+    e.endDt = e.endDt.replaceAll('-', '')
+    e.meetingTimeStart = e.meetingTimeStart.replaceAll(':', '').split(" ")[0]
+    e.meetingTimeEnd = e.meetingTimeEnd.replaceAll(':', '').split(" ")[0]
+    e.meetingPattern = e.meetingPattern
+      .map(e => e.substring(0, 2))
+      .join()
+      .toUpperCase()
+
+    ics += 'BEGIN:VEVENT\n'
+    ics += `SUMMARY:${e.name}\n`
+    ics += `RRULE:FREQ=WEEKLY;BYDAY=${e.meetingPattern};UNTIL=${e.endDt}\n`
+    ics += `DTSTART;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeStart}00\n`
+    ics += `DTEND;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeEnd}00\n`
+    ics += `DESCRIPTION:${e.name}\n`
+    ics += 'END:VEVENT\n'
+  })
+
+  ics += 'END:VCALENDAR\n'
+
+  return ics
+}
