@@ -111,24 +111,37 @@ function getFinalsTimes() {
     return finalTimeFinder
 }
 
+function t24 (ampm) {
+  let t24 = parseInt(ampm.match(/\d{1,2}:\d{2}/)[0].replaceAll(':', ''))
+  if (ampm.search(/pm/i) > -1) t24 += 1200
+  else if (t24 >= 1200) t24 -= 1200
+  return t24.toString().padStart(4, '0')
+}
+
 function ics (courses) {
   ics = 'BEGIN:VCALENDAR\n'
 
   courses.forEach(e => {
-    e.startDt = e.startDt.replaceAll('-', '')
-    e.endDt = e.endDt.replaceAll('-', '')
-    e.meetingTimeStart = e.meetingTimeStart.replaceAll(':', '').split(" ")[0]
-    e.meetingTimeEnd = e.meetingTimeEnd.replaceAll(':', '').split(" ")[0]
-    e.meetingPattern = e.meetingPattern
-      .map(e => e.substring(0, 2))
-      .join()
-      .toUpperCase()
+    meetingTimeStart = t24(e.meetingTimeStart)
+    meetingTimeEnd = t24(e.meetingTimeEnd)
+    meetingPattern = e.meetingPattern.map(e => e.substring(0, 2).toUpperCase())
 
     ics += 'BEGIN:VEVENT\n'
     ics += `SUMMARY:${e.name}\n`
-    ics += `RRULE:FREQ=WEEKLY;BYDAY=${e.meetingPattern};UNTIL=${e.endDt}\n`
-    ics += `DTSTART;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeStart}00\n`
-    ics += `DTEND;TZID=America/Los_Angeles:${e.startDt}T${e.meetingTimeEnd}00\n`
+    ics += `RRULE:FREQ=WEEKLY;BYDAY=${meetingPattern.join()};UNTIL=${e.endDt.replaceAll('-', '')}\n`
+    ics += `DTSTART;TZID=America/Los_Angeles:${e.startDt.replaceAll('-', '')}T${meetingTimeStart}00\n`
+    ics += `DTEND;TZID=America/Los_Angeles:${e.startDt.replaceAll('-', '')}T${meetingTimeEnd}00\n`
+    ics += `DESCRIPTION:${e.name}\n`
+    ics += 'END:VEVENT\n'
+
+    if (!e.finalExamDate) return
+
+    let [finalStart, finalEnd] = e.finalExamDate.match(/\d{1,2}:\d{2}\W[ap]m/gi).map(e => t24(e))
+
+    ics += 'BEGIN:VEVENT\n'
+    ics += `SUMMARY:${e.name}\n`
+    ics += `DTSTART;TZID=America/Los_Angeles:${e.endDt.replaceAll('-', '')}T${finalStart}00\n`
+    ics += `DTEND;TZID=America/Los_Angeles:${e.endDt.replaceAll('-', '')}T${finalEnd}00\n`
     ics += `DESCRIPTION:${e.name}\n`
     ics += 'END:VEVENT\n'
   })
