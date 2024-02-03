@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "BroCal",
+  "description": "Creates calendar based on cpp schedule",
+  "version": "0.1.0",
+  "content_scripts": [
+    {
+      "matches": [
+        "*://my.cpp.edu/uPortal/f/home_student/normal/render.uP"
+      ],
+      "js": [
+        "content_script.js"
+      ]
+    }
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "autofocus@dennislee.xyz"
+    }
+  },
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ]
+}
