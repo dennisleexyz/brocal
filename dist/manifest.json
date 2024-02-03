@@ -1,14 +1,18 @@
 {
     "manifest_version": 3,
-    "name": "Brocal",
-    "description": "A chrome extension that will transfer your CPP Schedule to calender events for the semester!",
-    "version": "1.0.0",
-    "action": {
-        "default_popup": "popup.html",
-        "default_title": "BroCal",
-        "default_icon": "icon.png"
-
-    },
+    "name": "BroCal",
+    "description": "Creates calendar based on your CPP schedule",
+    "version": "0.1.0",
+    "content_scripts": [
+        {
+          "matches": ["*://my.cpp.edu/uPortal/f/home_student/normal/render.uP"],
+          "js": ["content_script/content_script.js"]
+        }
+      ],
+      
+    "permissions": [
+      "webRequest"
+    ],
     "icons": {
         "16": "icon.png",
         "48": "icon.png",
